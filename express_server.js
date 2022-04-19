@@ -56,7 +56,20 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
-  res.send(`${generateRandomString()}`); // Respond with 'Ok' (we will replace this)
+  let id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  console.log(urlDatabase);
+  res.redirect(`/urls/${id}`); // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortUrlId = req.params.shortURL;
+  const longURL = urlDatabase[shortUrlId];
+  if (longURL) {
+    res.redirect(longURL);
+  } else if (!longURL) {
+    res.send("error404! page not found");
+  }
 });
 
 app.listen(PORT, () => {
