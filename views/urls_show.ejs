@@ -21,7 +21,33 @@
           Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a>
         </p>
       </div>
-      <div class="card-footer text-muted"></div>
+      <div class="card-footer text-muted">
+        <form class="form-inline" action="/urls" method="POST">
+          <div
+            class="form-group mb-2"
+            style="display: flex; flex-direction: column; width: 100%"
+          >
+            <h1>Edit</h1>
+            <div style="display: flex; align-items: center">
+              <label for="newUrl">New URL:</label>
+              <input
+                class="form-control"
+                type="text"
+                name="longURL"
+                placeholder="http://"
+                style="width: 200px; margin: 0.5em"
+              />
+              <button
+                type="submit"
+                class="btn btn-primary"
+                style="height: 40px"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
     <a href="#">Link Shortner</a>
     <!-- Bootstrap JS -->
