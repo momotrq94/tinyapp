@@ -22,19 +22,12 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
       <% if(!username){ %>
-      <div style="display: flex; align-items: center; gap: 10px">
-        <form class="form-inline" action="/login" method="POST">
-          <div class="form-group mb-2">
-            <input
-              class="form-control"
-              type="text"
-              name="username"
-              placeholder="Username"
-              style="width: 300px; margin: auto"
-            />
-            <button type="submit" class="btn btn-outline-dark">Login</button>
-          </div>
-        </form>
+      <div
+        class="navbar-nav"
+        style="display: flex; align-items: center; gap: 10px"
+      >
+        <a class="nav-item nav-link" href="/login">Login</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
       </div>
       <% } else{ %>
       <div style="display: flex; align-items: center; gap: 10px">
