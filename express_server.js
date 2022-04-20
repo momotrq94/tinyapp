@@ -8,6 +8,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.use(cookieParser());
 
+const emailChecker = function (emailtoCheck, obj) {
+  for (const element in obj) {
+    if (obj[element]["email"] === emailtoCheck) {
+      return true;
+    }
+  }
+  return false;
+};
+
 function generateRandomString() {
   let characterString =
     "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -28,6 +37,14 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -41,12 +58,15 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const templateVars = {
+    urls: urlDatabase,
+    username: users[req.cookies["user_id"]],
+  };
   res.render("urls_index.ejs", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
+  const templateVars = { username: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
@@ -54,14 +74,48 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"],
+    username: users[req.cookies["user_id"]],
   };
   res.render("urls_show", templateVars);
 });
-
+// register page
 app.get("/register", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
+  const templateVars = { username: users[req.cookies["user_id"]] };
+  console.log(users);
   res.render("registeration", templateVars);
+});
+
+// register user
+app.post("/register", (req, res) => {
+  let uniqueID = generateRandomString();
+  let email = req.body.email;
+  let password = req.body.password;
+
+  if (email === "" || password === "") {
+    return res
+      .status(400)
+      .send(
+        "ERROR! Please enter a valid email and password, fields cannot be left blank"
+      );
+  }
+
+  if (emailChecker(email, users)) {
+    res
+      .status(400)
+      .send(
+        "ERROR! An account with that email address already exists, try another email or login with the email used."
+      );
+  }
+
+  users[uniqueID] = {
+    id: uniqueID,
+    email: email,
+    password: password,
+  };
+
+  res.cookie("user_id", uniqueID);
+
+  res.redirect("/urls");
 });
 // create new url
 app.post("/urls", (req, res) => {
@@ -105,7 +159,7 @@ app.post("/login", (req, res) => {
 // logout
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect(`/urls`);
 });
 
