@@ -4,11 +4,18 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
+const cookieSession = require("cookie-session");
 const salt = bcrypt.genSaltSync(10);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["This is a cool key lol"],
+  })
+);
 
 const emailChecker = function (emailtoCheck, obj) {
   for (const element in obj) {
@@ -81,61 +88,61 @@ app.get("/hello", (req, res) => {
 
 // urls main page
 app.get("/urls", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.status(401).send("Please Register/Login to view page");
   }
-  const filteredUrlDatabase = urlsForUser(req.cookies["user_id"], urlDatabase);
+  const filteredUrlDatabase = urlsForUser(req.session.user_id, urlDatabase);
   const templateVars = {
     urls: filteredUrlDatabase,
-    username: users[req.cookies["user_id"]],
+    username: users[req.session.user_id],
   };
   res.render("urls_index.ejs", templateVars);
 });
 
 // new url page
 app.get("/urls/new", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     res.redirect("/login");
   }
-  const templateVars = { username: users[req.cookies["user_id"]] };
+  const templateVars = { username: users[req.session.user_id] };
   res.render("urls_new", templateVars);
 });
 
 // specific path to open shortURL page
 app.get("/urls/:shortURL", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.status(401).send("Please Register/Login to view page");
   }
   let id = req.params.shortURL;
   if (!urlDatabase[id]) {
     return res.status(404).send("The page does not exist!");
   }
-  if (urlDatabase[id]["userID"] !== req.cookies["user_id"]) {
+  if (urlDatabase[id]["userID"] !== req.session.user_id) {
     return res.status(401).send("Unauthorized user access");
   }
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    username: users[req.cookies["user_id"]],
+    username: users[req.session.user_id],
   };
   res.render("urls_show", templateVars);
 });
 
 // login page
 app.get("/login", (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (req.session.user_id) {
     res.redirect("/urls");
   }
-  const templateVars = { username: users[req.cookies["user_id"]] };
+  const templateVars = { username: users[req.session.user_id] };
   res.render("login.ejs", templateVars);
 });
 
 // register page
 app.get("/register", (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (req.session.user_id) {
     res.redirect("/urls");
   }
-  const templateVars = { username: users[req.cookies["user_id"]] };
+  const templateVars = { username: users[req.session.user_id] };
   res.render("registeration", templateVars);
 });
 
@@ -167,7 +174,7 @@ app.post("/register", (req, res) => {
     password: password,
   };
   console.log(users);
-  res.cookie("user_id", uniqueID);
+  req.session.user_id = uniqueID;
 
   res.redirect("/urls");
 });
@@ -178,7 +185,7 @@ app.post("/urls", (req, res) => {
   let id = generateRandomString();
   urlDatabase[id] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"],
+    userID: req.session.user_id,
   };
   console.log(urlDatabase);
   res.redirect(`/urls/${id}`); // Respond with 'Ok' (we will replace this)
@@ -186,12 +193,12 @@ app.post("/urls", (req, res) => {
 
 // delete url
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.status(401).send("Please Register/Login to view page");
   }
 
   let id = req.params.shortURL;
-  if (urlDatabase[id]["userID"] !== req.cookies["user_id"]) {
+  if (urlDatabase[id]["userID"] !== req.session.user_id) {
     return res.status(401).send("Unauthorized user access");
   }
 
@@ -201,12 +208,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // edit url
 app.post("/urls/:id", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.status(401).send("Please Register/Login to view page");
   }
 
   let ids = req.params.id;
-  if (urlDatabase[ids]["userID"] !== req.cookies["user_id"]) {
+  if (urlDatabase[ids]["userID"] !== req.session.user_id) {
     return res.status(401).send("Unauthorized user access");
   }
   urlDatabase[ids].longURL = req.body.newURL;
@@ -241,14 +248,14 @@ app.post("/login", (req, res) => {
     }
   }
 
-  res.cookie("user_id", user["id"]);
+  req.session.user_id = user["id"];
 
   res.redirect(`/urls`);
 });
 
 // logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect(`/urls`);
 });
 
