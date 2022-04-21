@@ -3,6 +3,8 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
+const salt = bcrypt.genSaltSync(10);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -60,7 +62,7 @@ const urlDatabase = {
     userID: "aJ48lW",
   },
 };
-
+// user database with dummy user for testing
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -141,9 +143,9 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   let uniqueID = generateRandomString();
   let email = req.body.email;
-  let password = req.body.password;
+  let password = bcrypt.hashSync(req.body.password, salt);
 
-  if (!email || !password) {
+  if (!email || !req.body.password) {
     return res
       .status(400)
       .send(
@@ -164,7 +166,7 @@ app.post("/register", (req, res) => {
     email: email,
     password: password,
   };
-
+  console.log(users);
   res.cookie("user_id", uniqueID);
 
   res.redirect("/urls");
@@ -232,7 +234,7 @@ app.post("/login", (req, res) => {
   }
   const user = userFinder(email, users);
   if (emailChecker(email, users)) {
-    if (password !== user["password"]) {
+    if (!bcrypt.compareSync(password, user["password"])) {
       return res
         .status(403)
         .send("ERROR! Password incorrect please try again.");
