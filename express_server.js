@@ -74,6 +74,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    res.redirect("/login");
+  }
   const templateVars = { username: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
@@ -89,12 +92,18 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // login page
 app.get("/login", (req, res) => {
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  }
   const templateVars = { username: users[req.cookies["user_id"]] };
   res.render("login.ejs", templateVars);
 });
 
 // register page
 app.get("/register", (req, res) => {
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  }
   const templateVars = { username: users[req.cookies["user_id"]] };
   res.render("registeration", templateVars);
 });
