@@ -26,7 +26,7 @@ const emailChecker = function (emailtoCheck, obj) {
   return false;
 };
 
-const userFinder = function (emailtoCheck, obj) {
+const getUserByEmail = function (emailtoCheck, obj) {
   for (const element in obj) {
     if (obj[element]["email"] === emailtoCheck) {
       return obj[element];
@@ -239,7 +239,7 @@ app.post("/login", (req, res) => {
   if (!emailChecker(email, users)) {
     return res.status(403).send("ERROR! User not found!");
   }
-  const user = userFinder(email, users);
+  const user = getUserByEmail(email, users);
   if (emailChecker(email, users)) {
     if (!bcrypt.compareSync(password, user["password"])) {
       return res
