@@ -64,7 +64,7 @@ app.get("/urls.json", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
-
+// urls main page
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
@@ -72,7 +72,7 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index.ejs", templateVars);
 });
-
+// new url page
 app.get("/urls/new", (req, res) => {
   if (!req.cookies["user_id"]) {
     res.redirect("/login");
@@ -80,7 +80,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { username: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
-
+// specific path to open shortURL page
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
