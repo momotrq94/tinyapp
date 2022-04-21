@@ -17,6 +17,14 @@ const emailChecker = function (emailtoCheck, obj) {
   return false;
 };
 
+const userFinder = function (emailtoCheck, obj) {
+  for (const element in obj) {
+    if (obj[element]["email"] === emailtoCheck) {
+      return obj[element];
+    }
+  }
+};
+
 function generateRandomString() {
   let characterString =
     "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -81,7 +89,8 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // login page
 app.get("/login", (req, res) => {
-  res.render("login.ejs");
+  const templateVars = { username: users[req.cookies["user_id"]] };
+  res.render("login.ejs", templateVars);
 });
 
 // register page
@@ -157,8 +166,22 @@ app.get("/u/:shortURL", (req, res) => {
 // login and cookie send
 
 app.post("/login", (req, res) => {
-  let name = req.body.username;
-  res.cookie("username", name);
+  let email = req.body.email;
+  let password = req.body.password;
+  if (!emailChecker(email, users)) {
+    return res.status(403).send("ERROR! User not found!");
+  }
+  const user = userFinder(email, users);
+  if (emailChecker(email, users)) {
+    if (password !== user["password"]) {
+      return res
+        .status(403)
+        .send("ERROR! Password incorrect please try again.");
+    }
+  }
+
+  res.cookie("user_id", user["id"]);
+
   res.redirect(`/urls`);
 });
 
