@@ -25,6 +25,16 @@ const userFinder = function (emailtoCheck, obj) {
   }
 };
 
+const urlsForUser = function (id, obj) {
+  let outputObject = {};
+  for (const element in obj) {
+    if (obj[element].userID === id) {
+      outputObject[element] = obj[element].longURL;
+    }
+  }
+  return outputObject;
+};
+
 function generateRandomString() {
   let characterString =
     "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -69,8 +79,12 @@ app.get("/hello", (req, res) => {
 
 // urls main page
 app.get("/urls", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.status(401).send("Please Register/Login to view page");
+  }
+  const filteredUrlDatabase = urlsForUser(req.cookies["user_id"], urlDatabase);
   const templateVars = {
-    urls: urlDatabase,
+    urls: filteredUrlDatabase,
     username: users[req.cookies["user_id"]],
   };
   res.render("urls_index.ejs", templateVars);
@@ -87,6 +101,16 @@ app.get("/urls/new", (req, res) => {
 
 // specific path to open shortURL page
 app.get("/urls/:shortURL", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.status(401).send("Please Register/Login to view page");
+  }
+  let id = req.params.shortURL;
+  if (!urlDatabase[id]) {
+    return res.status(404).send("The page does not exist!");
+  }
+  if (urlDatabase[id]["userID"] !== req.cookies["user_id"]) {
+    return res.status(401).send("Unauthorized user access");
+  }
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
@@ -160,14 +184,29 @@ app.post("/urls", (req, res) => {
 
 // delete url
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.status(401).send("Please Register/Login to view page");
+  }
+
   let id = req.params.shortURL;
+  if (urlDatabase[id]["userID"] !== req.cookies["user_id"]) {
+    return res.status(401).send("Unauthorized user access");
+  }
+
   delete urlDatabase[id];
   res.redirect(`/urls`);
 });
 
 // edit url
 app.post("/urls/:id", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.status(401).send("Please Register/Login to view page");
+  }
+
   let ids = req.params.id;
+  if (urlDatabase[ids]["userID"] !== req.cookies["user_id"]) {
+    return res.status(401).send("Unauthorized user access");
+  }
   urlDatabase[ids].longURL = req.body.newURL;
   res.redirect(`/urls/${ids}`);
 });
