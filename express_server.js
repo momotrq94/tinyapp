@@ -22,7 +22,7 @@ app.use(
     keys: ["This is a cool key lol"],
   })
 );
-
+// urlDatabase with test links
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -33,7 +33,7 @@ const urlDatabase = {
     userID: "aJ48lW",
   },
 };
-// user database with dummy user for testing
+// user database with test user
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -41,13 +41,13 @@ const users = {
     password: "purple-monkey-dinosaur",
   },
 };
-
+// GET ROUTES
+// mainpage route to redirect users
 app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  }
+  res.redirect("/login");
 });
 
 // urls main page
@@ -110,6 +110,19 @@ app.get("/register", (req, res) => {
   res.render("registeration", templateVars);
 });
 
+// redirect to long url
+app.get("/u/:shortURL", (req, res) => {
+  const shortUrlId = req.params.shortURL;
+  const longURL = urlDatabase[shortUrlId].longURL;
+
+  if (!longURL) {
+    return res.send("error404! page not found");
+  }
+
+  res.redirect(longURL);
+});
+
+//POST ROUTES
 // register user
 app.post("/register", (req, res) => {
   let uniqueID = generateRandomString();
@@ -182,18 +195,6 @@ app.post("/urls/:id", (req, res) => {
   }
   urlDatabase[ids].longURL = req.body.newURL;
   res.redirect(`/urls/${ids}`);
-});
-
-// redirect to long url
-app.get("/u/:shortURL", (req, res) => {
-  const shortUrlId = req.params.shortURL;
-  const longURL = urlDatabase[shortUrlId].longURL;
-
-  if (!longURL) {
-    return res.send("error404! page not found");
-  }
-
-  res.redirect(longURL);
 });
 
 // login and cookie send
