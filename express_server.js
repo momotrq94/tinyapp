@@ -150,7 +150,6 @@ app.post("/register", (req, res) => {
     email: email,
     password: password,
   };
-  console.log(users);
   req.session.user_id = uniqueID;
 
   res.redirect("/urls");
@@ -158,13 +157,11 @@ app.post("/register", (req, res) => {
 
 // create new url
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
   let id = generateRandomString();
   urlDatabase[id] = {
     longURL: req.body.longURL,
     userID: req.session.user_id,
   };
-  console.log(urlDatabase);
   res.redirect(`/urls/${id}`); // Respond with 'Ok' (we will replace this)
 });
 
@@ -225,5 +222,5 @@ app.post("/logout", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Server listening on port ${PORT}!`); // only kept incase you want to see PORT on Terminal
 });
