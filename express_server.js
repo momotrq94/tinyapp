@@ -113,10 +113,14 @@ app.get("/register", (req, res) => {
 // redirect to long url
 app.get("/u/:shortURL", (req, res) => {
   const shortUrlId = req.params.shortURL;
+
+  if (!urlDatabase[shortUrlId]) {
+    return res.status(404).send("Error! Invalid URL");
+  }
   const longURL = urlDatabase[shortUrlId].longURL;
 
   if (!longURL) {
-    return res.send("error404! page not found");
+    return res.status(404).send("Error! page not found");
   }
 
   res.redirect(longURL);
@@ -191,7 +195,7 @@ app.post("/urls/:id", (req, res) => {
     return res.status(401).send("Unauthorized user access");
   }
   urlDatabase[ids].longURL = req.body.newURL;
-  res.redirect(`/urls/${ids}`);
+  res.redirect(`/urls`);
 });
 
 // login and cookie send
